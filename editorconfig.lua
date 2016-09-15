@@ -34,8 +34,8 @@ end
 
 local function debug_table(t)
   local all = {}
-  for k, v in pairs(t) do
-    all[#all +1] = string.format('"%s" = %s', k, v)
+  for _, k in ipairs(t) do
+    all[#all +1] = string.format('"%s" = %s', k, t[k])
   end
   all = '{ ' .. table.concat(all, ', ') .. ' }'
   local msg = string.format('properties = %s', all)
@@ -49,9 +49,9 @@ local set_table = {}
 -- indent_style
 function set_table.indent_style(t)
   local tabs
-  if t.indent_style == ec_core.INDENT_STYLE_TAB then
+  if t.indent_style == "tab" then
     tabs = true
-  elseif t.indent_style == ec_core.INDENT_STYLE_SPACE then
+  elseif t.indent_style == "space" then
     tabs = false
   end
   if tabs == nil then return end
@@ -61,7 +61,7 @@ end
 -- indent_size
 function set_table.indent_size(t)
   local size
-  if t.indent_size == ec_core.INDENT_SIZE_TAB then
+  if t.indent_size == "tab" then
     if t.tab_width ~= nil then
       size = t.tab_width
     end
@@ -80,11 +80,11 @@ end
 -- end_of_line
 function set_table.end_of_line(t)
   local eol
-  if t.end_of_line == ec_core.END_OF_LINE_LF then
+  if t.end_of_line == "lf" then
     eol = buffer.EOL_LF
-  elseif t.end_of_line == ec_core.END_OF_LINE_CRLF then
+  elseif t.end_of_line == "crlf" then
     eol = buffer.EOL_CRLF
-  elseif t.end_of_line == ec_core.END_OF_LINE_CR then
+  elseif t.end_of_line == "cr" then
     eol = buffer.EOL_CR
   end
   if eol == nil then return end
@@ -94,13 +94,13 @@ end
 -- charset
 function set_table.charset(t)
   local enc
-  if t.charset == ec_core.CHARSET_LATIN1 then
+  if t.charset == "latin1" then
     enc = 'ISO-8859-1'
-  elseif t.charset == ec_core.CHARSET_UTF_8 then
+  elseif t.charset == "utf-8" then
     enc = 'UTF-8'
-  elseif t.charset == ec_core.CHARSET_UTF_16BE then
+  elseif t.charset == "utf-16be" then
     enc = 'UTF-16BE'
-  elseif t.charset == ec_core.CHARSET_UTF_16LE then
+  elseif t.charset == "utf-16le" then
     enc = 'UTF-16LE'
   end
   if enc == nil then return end
@@ -123,10 +123,10 @@ function M.load_editorconfig(filename)
     if M.debug.enabled then debug_table(tbl) end
   end
 
-  for k, v in pairs(tbl) do
+  for _, k in ipairs(tbl) do
     local f = set_table[k]
     if M.debug.enabled then
-      if f then debug_apply(k, v) else debug_skip(k) end
+      if f then debug_apply(k, tbl[k]) else debug_skip(k) end
     end
     if f then f(tbl) end
   end
