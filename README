@@ -1,9 +1,0 @@
-You can find the Textadept editor homepage at https://foicica.com/textadept/index.html.
-
-To see how to use EditorConfig check http://editorconfig.org.
-
-To enable this module:
-  cd ~/.textadept
-  mkdir -p modules/textadept/editing
-  cp /path/to/editorconfig.lua modules/textadept/editing
-  echo "require(\"textadept.editing.editorconfig\").enable()" >> init.lua
