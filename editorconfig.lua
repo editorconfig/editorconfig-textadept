@@ -1,6 +1,5 @@
 -- Copyright 2016 Joao Valverde joao.valverde.att.tecnico.ulisboa.pt. See LICENSE.
 
-editing = require('textadept.editing')
 ec_core = require('editorconfig_core')
 
 -- Reference: https://github.com/editorconfig/editorconfig/wiki/EditorConfig-Properties
@@ -10,6 +9,13 @@ local M = {}
 M.debug = {}
 
 M.debug.enabled = false
+
+-- stand-alone mode for testing
+if not textadept then
+  buffer = {}
+  buffer.set_encoding = function(buf, enc) buffer.set_encoding = enc end
+  M.debug.enabled = true
+end 
 
 local function debug_print(msg)
   if not M.debug.enabled then return end
@@ -146,6 +152,18 @@ function M.enable(...)
   end
 end
 
-editing.editorconfig = M
+if textadept then
+  require('textadept.editing').editorconfig = M
+  return M
+end
 
-return M
+if not arg[1] then
+  print("Need full path to filename.")
+  os.exit(1)
+end
+M.load_editorconfig(arg[1])
+for k, v in pairs(buffer) do
+  local msg = string.format("%s <- %s", k, v)
+  print(msg)
+end
+os.exit(0)
