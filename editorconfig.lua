@@ -40,8 +40,8 @@ end
 
 local function debug_table(t)
   local all = {}
-  for _, k in ipairs(t) do
-    all[#all +1] = string.format('"%s" = %s', k, t[k])
+  for k, v in pairs(t) do
+    all[#all +1] = string.format('"%s" = %s', k, v)
   end
   all = '{ ' .. table.concat(all, ', ') .. ' }'
   local msg = string.format('properties = %s', all)
@@ -119,22 +119,19 @@ function M.load_editorconfig(filename)
   if M.debug.enabled then debug_filename(filename) end
 
   -- load table with EditorConfig properties
-  local tbl
-  local ok, err = pcall(ec_core.parse, filename)
+  local ok, ec = pcall(ec_core.parse, filename)
   if not ok then
-    if M.debug.enabled then debug_print(err) end
+    if M.debug.enabled then debug_print(ec) end
     return
-  else
-    tbl = err
-    if M.debug.enabled then debug_table(tbl) end
   end
+  if M.debug.enabled then debug_table(ec) end
 
-  for _, k in ipairs(tbl) do
+  for k in pairs(ec) do
     local f = set_table[k]
     if M.debug.enabled then
-      if f then debug_apply(k, tbl[k]) else debug_skip(k) end
+      if f then debug_apply(k, ec[k]) else debug_skip(k) end
     end
-    if f then f(tbl) end
+    if f then f(ec) end
   end
 end
 
