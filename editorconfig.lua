@@ -10,13 +10,6 @@ M.debug = {}
 
 M.debug.enabled = false
 
--- stand-alone mode for testing
-if not textadept then
-  buffer = {}
-  buffer.set_encoding = function(buf, enc) buffer.set_encoding = enc end
-  M.debug.enabled = true
-end 
-
 local function debug_print(msg)
   if not M.debug.enabled then return end
   msg = string.format('editorconfig: %s\n', msg)
@@ -38,26 +31,17 @@ local function debug_apply(key, val)
   debug_print(msg)
 end
 
-local function debug_table(t)
-  local all = {}
-  for k, v in pairs(t) do
-    all[#all +1] = string.format('"%s" = %s', k, v)
-  end
-  all = '{ ' .. table.concat(all, ', ') .. ' }'
-  local msg = string.format('properties = %s', all)
-  debug_print(msg)
-end
-
 M.debug.print = debug_print
 
 local set_table = {}
+local T = ec_core.T
 
 -- indent_style
-function set_table.indent_style(t)
+function set_table.indent_style(value)
   local tabs
-  if t.indent_style == "tab" then
+  if value == T.INDENT_STYLE_TAB then
     tabs = true
-  elseif t.indent_style == "space" then
+  elseif value == T.INDENT_STYLE_SPACE then
     tabs = false
   end
   if tabs == nil then return end
@@ -65,32 +49,28 @@ function set_table.indent_style(t)
 end
 
 -- indent_size
-function set_table.indent_size(t)
+function set_table.indent_size(value)
   local size
-  if t.indent_size == "tab" then
-    if t.tab_width ~= nil then
-      size = t.tab_width
-    end
-  else
-    size = t.indent_size
+  if value ~= T.INDENT_SIZE_TAB then
+    size = value
   end
   if size == nil then return end
   buffer.indent = size
 end
 
 -- tab_width
-function set_table.tab_width(t)
-  buffer.tab_width = t.tab_width
+function set_table.tab_width(value)
+  buffer.tab_width = value
 end
 
 -- end_of_line
-function set_table.end_of_line(t)
+function set_table.end_of_line(value)
   local eol
-  if t.end_of_line == "lf" then
+  if value == T.END_OF_LINE_LF then
     eol = buffer.EOL_LF
-  elseif t.end_of_line == "crlf" then
+  elseif value == T.END_OF_LINE_CRLF then
     eol = buffer.EOL_CRLF
-  elseif t.end_of_line == "cr" then
+  elseif value == T.END_OF_LINE_CR then
     eol = buffer.EOL_CR
   end
   if eol == nil then return end
@@ -98,40 +78,33 @@ function set_table.end_of_line(t)
 end
 
 -- charset
-function set_table.charset(t)
+function set_table.charset(value)
   local enc
-  if t.charset == "latin1" then
+  if value == T.CHARSET_LATIN1 then
     enc = 'ISO-8859-1'
-  elseif t.charset == "utf-8" then
+  elseif value == T.CHARSET_UTF_8 then
     enc = 'UTF-8'
-  elseif t.charset == "utf-16be" then
+  elseif value == T.CHARSET_UTF_16BE then
     enc = 'UTF-16BE'
-  elseif t.charset == "utf-16le" then
+  elseif value == T.CHARSET_UTF_16LE then
     enc = 'UTF-16LE'
   end
   if enc == nil then return end
   buffer:set_encoding(enc)
 end
 
-function M.load_editorconfig(filename)
+function M.load_editorconfig(filepath, confname)
   if M.debug.enabled then M.debug.print(ec_core._VERSION) end
-  if not filename then return end
-  if M.debug.enabled then debug_filename(filename) end
+  if not filepath then return end
+  if M.debug.enabled then debug_filename(filepath) end
 
   -- load table with EditorConfig properties
-  local ok, ec = pcall(ec_core.parse, filename)
-  if not ok then
-    if M.debug.enabled then debug_print(ec) end
-    return
-  end
-  if M.debug.enabled then debug_table(ec) end
-
-  for k in pairs(ec) do
-    local f = set_table[k]
+  for name, value in ec_core.open(filepath, confname) do
+    local f = set_table[name]
     if M.debug.enabled then
-      if f then debug_apply(k, ec[k]) else debug_skip(k) end
+      if f then debug_apply(name, value) else debug_skip(name) end
     end
-    if f then f(ec) end
+    if f then f(value) end
   end
 end
 
@@ -149,18 +122,6 @@ function M.enable(...)
   end
 end
 
-if textadept then
-  require('textadept.editing').editorconfig = M
-  return M
-end
+textadept.editing.editorconfig = M
 
-if not arg[1] then
-  print("Need full path to filename.")
-  os.exit(1)
-end
-M.load_editorconfig(arg[1])
-for k, v in pairs(buffer) do
-  local msg = string.format("%s <- %s", k, v)
-  print(msg)
-end
-os.exit(0)
+return M
