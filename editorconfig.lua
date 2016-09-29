@@ -7,102 +7,79 @@ ec_core = require('editorconfig_core')
 local M = {}
 
 M.debug = {}
-
 M.debug.enabled = false
 
-local function debug_print(msg)
+function M.debug.print(fmt, ...)
   if not M.debug.enabled then return end
-  msg = string.format('editorconfig: %s\n', msg)
-  io.stderr:write(msg)
+  local msg = string.format(fmt, ...)
+  io.stderr:write('editorconfig: ' .. msg .. "\n")
 end
 
-local function debug_filename(filename)
-  local msg = string.format('*** configuring "%s"', filename)
-  debug_print(msg)
-end
+local debug_print = M.debug.print
 
-local function debug_skip(key)
-  local msg = string.format('skipping property "%s"', key)
-  debug_print(msg)
-end
-
-local function debug_apply(key, val)
-  local msg = string.format('setting property "%s" = %s', key, val)
-  debug_print(msg)
-end
-
-M.debug.print = debug_print
-
-local set_table = {}
-local T = ec_core.T
+local _F = {}
+local _T = ec_core.T
 
 -- indent_style
-function set_table.indent_style(value)
-  local tabs
-  if value == T.INDENT_STYLE_TAB then
-    tabs = true
-  elseif value == T.INDENT_STYLE_SPACE then
-    tabs = false
+function _F.indent_style(value)
+  if value == _T.INDENT_STYLE_TAB then
+    buffer.use_tabs = true
+  elseif value == _T.INDENT_STYLE_SPACE then
+    buffer.use_tabs = false
   end
-  if tabs == nil then return end
-  buffer.use_tabs = tabs
 end
 
 -- indent_size
-function set_table.indent_size(value)
-  local size
-  if value ~= T.INDENT_SIZE_TAB then
-    size = value
+function _F.indent_size(value)
+  if value == _T.INDENT_SIZE_TAB then
+    buffer.indent = 0
+  else
+    buffer.indent = value
   end
-  if size == nil then return end
-  buffer.indent = size
 end
 
 -- tab_width
-function set_table.tab_width(value)
+function _F.tab_width(value)
   buffer.tab_width = value
 end
 
 -- end_of_line
-function set_table.end_of_line(value)
-  local eol
-  if value == T.END_OF_LINE_LF then
-    eol = buffer.EOL_LF
-  elseif value == T.END_OF_LINE_CRLF then
-    eol = buffer.EOL_CRLF
-  elseif value == T.END_OF_LINE_CR then
-    eol = buffer.EOL_CR
-  end
+function _F.end_of_line(value)
+  local eol_mode = {
+    [_T.END_OF_LINE_LF] = buffer.EOL_LF,
+    [_T.END_OF_LINE_CRLF] = buffer.EOL_CRLF,
+    [_T.END_OF_LINE_CR] = buffer.EOL_CR,
+  }
+  local eol = eol_mode[value]
   if eol == nil then return end
   buffer.eol_mode = eol
 end
 
 -- charset
-function set_table.charset(value)
-  local enc
-  if value == T.CHARSET_LATIN1 then
-    enc = 'ISO-8859-1'
-  elseif value == T.CHARSET_UTF_8 then
-    enc = 'UTF-8'
-  elseif value == T.CHARSET_UTF_16BE then
-    enc = 'UTF-16BE'
-  elseif value == T.CHARSET_UTF_16LE then
-    enc = 'UTF-16LE'
-  end
+function _F.charset(value)
+  local encodings = {
+    [_T.CHARSET_LATIN1] = 'ISO-8859-1',
+    [_T.CHARSET_UTF_8] = 'UTF-8',
+    [_T.CHARSET_UTF_16BE] = 'UTF-16BE',
+    [_T.CHARSET_UTF_16LE] = 'UTF-16LE',
+  }
+  local enc = encodings[value]
   if enc == nil then return end
   buffer:set_encoding(enc)
 end
 
 function M.load_editorconfig(filepath, confname)
-  if M.debug.enabled then M.debug.print(ec_core._VERSION) end
+  debug_print(ec_core._VERSION)
   if not filepath then return end
-  if M.debug.enabled then debug_filename(filepath) end
+  debug_print('*** configuring "%s"', filepath)
 
   -- load table with EditorConfig properties
   for name, value in ec_core.open(filepath, confname) do
-    local f = set_table[name]
-    if M.debug.enabled then
-      if f then debug_apply(name, value) else debug_skip(name) end
+    local f = _F[name]
+    if f then
+      debug_print('setting property "%s" = %s', name, value)
+    else
+      debug_print('skipping property "%s"', name)
     end
     if f then f(value) end
   end
