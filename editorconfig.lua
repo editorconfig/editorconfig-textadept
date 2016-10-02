@@ -65,16 +65,19 @@ function _F.charset(value)
   }
   local enc = encodings[value]
   if enc == nil then return end
-  buffer:set_encoding(enc)
+  if buffer.encoding ~= enc then
+    buffer.encoding = enc
+    io.reload_file()
+  end
 end
 
-function M.load_editorconfig(filepath, confname)
+function M.load_editorconfig(filepath)
   debug_print(ec_core._VERSION)
   if not filepath then return end
   debug_print('*** configuring "%s"', filepath)
 
   -- load table with EditorConfig properties
-  for name, value in ec_core.open(filepath, confname) do
+  for name, value in ec_core.open(filepath) do
     local f = _F[name]
     if f then
       debug_print('setting property "%s" = %s', name, value)
