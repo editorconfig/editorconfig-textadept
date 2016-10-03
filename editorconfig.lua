@@ -6,6 +6,7 @@ ec_core = require('editorconfig_core')
 
 local M = {}
 
+M.enabled = true
 M.debug = {}
 M.debug.enabled = false
 
@@ -83,7 +84,8 @@ function _F.insert_final_newline(value)
   buffer.editorconfig.insert_final_newline = value
 end
 
-function M.load_editorconfig(filepath)
+local function editorconfig_file_opened(filepath)
+  if not M.enabled then return end
   debug_print(ec_core._VERSION)
   if not filepath then return end
   debug_print('*** configuring "%s"', filepath)
@@ -120,7 +122,8 @@ end
 
 -- "textadept.editing.strip_trailing_spaces" needs to be set to "false"
 -- to allow per-buffer settings.
-local function apply_ec_save(filepath)
+local function editorconfig_file_before_save(filepath)
+  if not M.enabled then return end
   if not buffer.editorconfig then return end
   if buffer.editorconfig.trim_trailing_whitespace then
     strip_trailing_whitespace()
@@ -130,22 +133,9 @@ local function apply_ec_save(filepath)
   end
 end
 
-function M.enable(...)
-  local enable = true
-  local arg = ...
-  if arg ~= nil then
-    if type(arg) ~= 'boolean' then error('argument must be boolean') end
-    enable = arg
-  end
-  if enable then
-    events.connect(events.FILE_OPENED, M.load_editorconfig)
-    events.connect(events.FILE_BEFORE_SAVE, apply_ec_save)
-  else
-    events.disconnect(events.FILE_OPENED, M.load_editorconfig)
-    events.disconnect(events.FILE_BEFORE_SAVE, apply_ec_save)
-  end
-end
+events.connect(events.FILE_OPENED, editorconfig_file_opened)
+events.connect(events.FILE_BEFORE_SAVE, editorconfig_file_before_save)
 
 textadept.editing.editorconfig = M
 
-return M
+return true

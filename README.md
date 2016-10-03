@@ -15,7 +15,7 @@ This is an [EditorConfig][] plugin for [Textadept][].
         cd ~/.textadept
         mkdir -p modules/textadept/editing
         cp /path/to/editorconfig.lua modules/textadept/editing
-        echo "require(\"textadept.editing.editorconfig\").enable()" >> init.lua
+        echo "require(\"textadept.editing.editorconfig\")" >> init.lua
 
     Check the [Manual][] for further information about module installation and how to configure Textadept.
 
