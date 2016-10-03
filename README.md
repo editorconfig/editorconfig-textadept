@@ -29,6 +29,8 @@ The Textadept EditorConfig plugin supports the following EditorConfig
 * tab_width
 * end_of_line
 * charset
+* trim_trailing_whitespace
+* insert_final_newline
 
 [EditorConfig]: http://editorconfig.org
 [EditorConfig Lua Core]: https://github.com/randstr/editorconfig-core-lua

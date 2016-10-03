@@ -17,6 +17,10 @@ end
 
 local debug_print = M.debug.print
 
+local function debug_property(name, value)
+  debug_print('setting property "%s" = %s', name, value)
+end
+
 local _F = {}
 local _T = ec_core.T
 
@@ -71,20 +75,58 @@ function _F.charset(value)
   end
 end
 
+function _F.trim_trailing_whitespace(value)
+  buffer.editorconfig.trim_trailing_whitespace = value
+end
+
+function _F.insert_final_newline(value)
+  buffer.editorconfig.insert_final_newline = value
+end
+
 function M.load_editorconfig(filepath)
   debug_print(ec_core._VERSION)
   if not filepath then return end
   debug_print('*** configuring "%s"', filepath)
+  buffer.editorconfig = buffer.editorconfig or {}
 
   -- load table with EditorConfig properties
   for name, value in ec_core.open(filepath) do
     local f = _F[name]
-    if f then
-      debug_print('setting property "%s" = %s', name, value)
-    else
-      debug_print('skipping property "%s"', name)
-    end
+    if f then debug_property(name, value) end
     if f then f(value) end
+  end
+end
+
+-- copied from textadept/modules/textadept/editing.lua
+local function strip_trailing_whitespace()
+  for line = 0, buffer.line_count - 1 do
+    local s, e = buffer:position_from_line(line), buffer.line_end_position[line]
+    local i, byte = e - 1, buffer.char_at[e - 1]
+    while i >= s and (byte == 9 or byte == 32) do
+      i, byte = i - 1, buffer.char_at[i - 1]
+    end
+    if i < e - 1 then buffer:delete_range(i + 1, e - i - 1) end
+  end
+end
+
+-- copied from textadept/modules/textadept/editing.lua
+local function ensure_ending_newline()
+  local e = buffer:position_from_line(buffer.line_count)
+  if buffer.line_count == 1 or
+     e > buffer:position_from_line(buffer.line_count - 1) then
+    buffer:insert_text(e, '\n')
+  end
+end
+
+-- "textadept.editing.strip_trailing_spaces" needs to be set to "false"
+-- to allow per-buffer settings.
+local function apply_ec_save(filepath)
+  if not buffer.editorconfig then return end
+  if buffer.editorconfig.trim_trailing_whitespace then
+    strip_trailing_whitespace()
+  end
+  if buffer.editorconfig.insert_final_newline then
+    ensure_ending_newline()
   end
 end
 
@@ -97,8 +139,10 @@ function M.enable(...)
   end
   if enable then
     events.connect(events.FILE_OPENED, M.load_editorconfig)
+    events.connect(events.FILE_BEFORE_SAVE, apply_ec_save)
   else
     events.disconnect(events.FILE_OPENED, M.load_editorconfig)
+    events.disconnect(events.FILE_BEFORE_SAVE, apply_ec_save)
   end
 end
 
