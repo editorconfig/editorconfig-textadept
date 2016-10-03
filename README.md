@@ -6,7 +6,7 @@ This is an [EditorConfig][] plugin for [Textadept][].
 
 ### Install From source
 
-1.  Install the [EditorConfig Lua Core][]. Simply run the follow command to install:
+1.  Install the [EditorConfig Lua Core][]. Simply run the following command to install:
 
         luarocks install editorconfig-core
 
@@ -33,7 +33,7 @@ The Textadept EditorConfig plugin supports the following EditorConfig
 * insert_final_newline
 
 [EditorConfig]: http://editorconfig.org
-[EditorConfig Lua Core]: https://github.com/randstr/editorconfig-core-lua
+[EditorConfig Lua Core]: https://github.com/editorconfig/editorconfig-core-lua
 [properties]: http://editorconfig.org/#supported-properties
 [Textadept]: https://foicica.com/textadept
 [Manual]: https://foicica.com/textadept/manual.html#Modules
