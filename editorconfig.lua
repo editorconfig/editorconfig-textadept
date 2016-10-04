@@ -97,6 +97,7 @@ local function editorconfig_file_opened(filepath)
     if f then debug_property(name, value) end
     if f then f(value) end
   end
+  events.emit(events.UPDATE_UI) -- for updating statusbar
 end
 
 -- copied from textadept/modules/textadept/editing.lua
