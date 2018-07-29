@@ -1,8 +1,11 @@
 -- Copyright 2016 Joao Valverde joao.valverde.att.tecnico.ulisboa.pt. See LICENSE.
 
+-- Reference: https://github.com/editorconfig/editorconfig/wiki/EditorConfig-Properties
+
 ec_core = require('editorconfig_core')
 
--- Reference: https://github.com/editorconfig/editorconfig/wiki/EditorConfig-Properties
+assert(ec_core._VERSION >= "EditorConfig Lua Core Version 0.2.0",
+        "EditorConfig Lua Core 0.2.0 or above is required")
 
 local M = {}
 
