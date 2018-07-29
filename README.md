@@ -1,28 +1,28 @@
 # EditorConfig Plugin for Textadept
 
-This is an [EditorConfig][] plugin for [Textadept][].
+This is an [EditorConfig] plugin for [Textadept].
 
 ## Installation
 
-### Install From source
-
-1.  Install the [EditorConfig Lua Core][]. Simply run the following command to install:
+1. You'll need the [EditorConfig Lua Core]. It can be installed using
+[LuaRocks] with the following command:
 
         luarocks install editorconfig-core
 
-2.  Install the `editorconfig.lua` module to your Textadept `_USERHOME`.
+2. Install the `editorconfig.lua` module to your Textadept `_USERHOME`.
 
         cd ~/.textadept
         mkdir -p modules/textadept/editing
         cp /path/to/editorconfig.lua modules/textadept/editing
         echo "require(\"textadept.editing.editorconfig\")" >> init.lua
 
-    Check the [Manual][] for further information about module installation and how to configure Textadept.
+Check the [manual] for further information about module installation and how
+to configure Textadept.
 
 ## Supported Properties
 
 The Textadept EditorConfig plugin supports the following EditorConfig
-[properties][]:
+[properties]:
 
 * indent_style
 * indent_size
@@ -35,5 +35,6 @@ The Textadept EditorConfig plugin supports the following EditorConfig
 [EditorConfig]: http://editorconfig.org
 [EditorConfig Lua Core]: https://github.com/editorconfig/editorconfig-core-lua
 [properties]: http://editorconfig.org/#supported-properties
+[LuaRocks]: https://luarocks.org/
 [Textadept]: https://foicica.com/textadept
-[Manual]: https://foicica.com/textadept/manual.html#Modules
+[manual]: https://foicica.com/textadept/manual.html#Modules
