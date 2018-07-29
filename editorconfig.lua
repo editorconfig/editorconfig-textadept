@@ -13,7 +13,7 @@ M.debug.enabled = false
 function M.debug.print(fmt, ...)
   if not M.debug.enabled then return end
   local msg = string.format(fmt, ...)
-  io.stderr:write('editorconfig: ' .. msg .. "\n")
+  io.stderr:write('editorconfig: ' .. msg .. '\n')
 end
 
 local debug_print = M.debug.print
