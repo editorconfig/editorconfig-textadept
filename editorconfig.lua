@@ -2,10 +2,10 @@
 
 -- Reference: https://github.com/editorconfig/editorconfig/wiki/EditorConfig-Properties
 
-ec_core = require('editorconfig_core')
+ec = require('editorconfig')
 
-assert(ec_core._VERSION >= "EditorConfig Lua Core Version 0.2.0",
-        "EditorConfig Lua Core 0.2.0 or above is required")
+assert(ec._VERSION >= 'EditorConfig Lua Core Version 0.3.0',
+        'EditorConfig Lua Core 0.3.0 or above is required')
 
 local M = {}
 
@@ -25,80 +25,147 @@ local function debug_property(name, value)
   debug_print('setting property "%s" = %s', name, value)
 end
 
+local function debug_value(value)
+  if value ~= 'unset' then
+    debug_print('unknown or invalid value: %s (%s)', value, type(value))
+  end
+end
+
+local function true_or_false(value)
+  if value == 'true' then
+    return true
+  elseif value == 'false' then
+    return false
+  else
+    debug_value(value)
+  end
+end
+
+local function positive_or_zero(value)
+  value = math.tointeger(value)
+  if value ~= nil and value >= 0 then
+    return value
+  end
+  debug_value(value)
+end
+
 local _F = {}
-local _T = ec_core.T
 
 -- indent_style
 function _F.indent_style(value)
-  if value == _T.INDENT_STYLE_TAB then
-    buffer.use_tabs = true
-  elseif value == _T.INDENT_STYLE_SPACE then
-    buffer.use_tabs = false
+  local tabs
+  if value == 'tab' then
+    tabs = true
+  elseif value == 'space' then
+    tabs = false
+  else
+    debug_value(value)
+  end
+  if tabs ~= nil then
+    buffer.use_tabs = tabs
   end
 end
 
 -- indent_size
 function _F.indent_size(value)
-  if value == _T.INDENT_SIZE_TAB then
-    buffer.indent = 0
+  local indent
+  if value == 'tab' then
+    indent = 0
+  end
+  if indent == nil then
+    indent = positive_or_zero(value)
+  end
+  if indent ~= nil then
+    buffer.indent = indent
   else
-    buffer.indent = value
+    debug_value(value)
   end
 end
 
 -- tab_width
 function _F.tab_width(value)
-  buffer.tab_width = value
+  local width = positive_or_zero(value)
+  if width ~= nil then
+    buffer.tab_width = width
+  else
+    debug_value(value)
+  end
 end
 
 -- end_of_line
 function _F.end_of_line(value)
-  local eol_mode = {
-    [_T.END_OF_LINE_LF] = buffer.EOL_LF,
-    [_T.END_OF_LINE_CRLF] = buffer.EOL_CRLF,
-    [_T.END_OF_LINE_CR] = buffer.EOL_CR,
-  }
-  local eol = eol_mode[value]
-  if eol == nil then return end
-  buffer.eol_mode = eol
+  local mode
+  if value == 'lf' then
+     mode = buffer.EOL_LF
+  elseif value == 'crlf' then
+    mode = buffer.EOL_CRLF
+  elseif value == 'cr' then
+    mode = buffer.EOL_CR
+  else
+    debug_value(value)
+  end
+  if mode ~= nil then
+    buffer.eol_mode = mode
+  end
 end
 
 -- charset
 function _F.charset(value)
-  local encodings = {
-    [_T.CHARSET_LATIN1] = 'ISO-8859-1',
-    [_T.CHARSET_UTF_8] = 'UTF-8',
-    [_T.CHARSET_UTF_16BE] = 'UTF-16BE',
-    [_T.CHARSET_UTF_16LE] = 'UTF-16LE',
-  }
-  local enc = encodings[value]
-  if enc == nil then return end
-  if buffer.encoding ~= enc then
-    buffer.encoding = enc
+  local encoding
+  if value == 'latin1' then
+    encoding = 'ISO-8859-1'
+  elseif value == 'utf-8' then
+    encoding = 'UTF-8'
+  elseif value == 'utf-16be' then
+    encoding = 'UTF-16BE'
+  elseif value == 'utf16-le' then
+    encoding = 'UTF-16LE'
+  else
+    debug_value(value)
+  end
+  if encoding ~= nil and buffer.encoding ~= encoding then
+    buffer.encoding = encoding
     io.reload_file()
   end
 end
 
+-- trim_trailing_whitespace
 function _F.trim_trailing_whitespace(value)
-  buffer.editorconfig.trim_trailing_whitespace = value
+  local trim = true_or_false(value)
+  if trim ~= nil then
+    buffer.editorconfig.trim_trailing_whitespace = trim
+  else
+    debug_value(value)
+  end
 end
 
+-- insert_final_newline
 function _F.insert_final_newline(value)
-  buffer.editorconfig.insert_final_newline = value
+  local insert = true_or_false(value)
+  if insert ~= nil then
+    buffer.editorconfig.insert_final_newline = insert
+  else
+    debug_value(value)
+  end
 end
 
 local function editorconfig_file_opened(filepath)
   if not M.enabled then return end
-  debug_print(ec_core._VERSION)
+  debug_print(ec._VERSION)
   if not filepath then return end
   debug_print('*** configuring "%s"', filepath)
   buffer.editorconfig = buffer.editorconfig or {}
 
   -- load table with EditorConfig properties
-  for name, value in ec_core.open(filepath) do
-    local f = _F[name]
-    if f then debug_property(name, value) end
-    if f then f(value) end
+  properties = ec.parse(filepath)
+  for name, value in pairs(properties) do
+    debug_property(name, value)
+    local func = _F[name]
+    if func then
+      func(value)
+    else
+      debug_print('unknown property "%s"', name)
+    end
   end
   events.emit(events.UPDATE_UI) -- for updating statusbar
 end
