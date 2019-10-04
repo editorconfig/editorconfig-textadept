@@ -9,8 +9,8 @@ This is an [EditorConfig] plugin for [Textadept].
 
         luarocks install editorconfig-core
 
-You may need to set `TA_LUA_CPATH` if using LuaRocks. This can be done for
-example by adding to your environment:
+  You may need to set `TA_LUA_CPATH` if using LuaRocks. This can be done for
+  example by adding to your environment:
 
         export TA_LUA_CPATH=";;$(luarocks path --lr-cpath)"
 
