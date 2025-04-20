@@ -38,9 +38,9 @@ The Textadept EditorConfig plugin supports the following EditorConfig
 * trim_trailing_whitespace
 * insert_final_newline
 
-[EditorConfig]: http://editorconfig.org
+[EditorConfig]: https://editorconfig.org
 [EditorConfig Lua Core]: https://github.com/editorconfig/editorconfig-core-lua
-[properties]: http://editorconfig.org/#supported-properties
+[properties]: https://editorconfig.org/#supported-properties
 [LuaRocks]: https://luarocks.org/
 [Textadept]: https://foicica.com/textadept
 [manual]: https://foicica.com/textadept/manual.html#Modules
